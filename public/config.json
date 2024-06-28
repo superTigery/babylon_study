@@ -1,0 +1,7 @@
+{
+  "description": "model_path是模型所在的文件夹,这里默认是models文件夹;model_name是模型名称,注意必须带上后缀；env_path是HDR所在文件夹,这里默认是env文件夹,env_name是HDR名称,注意带上后缀  注意：boom-box和damage文件下模型，需要同时修改model_path和model_name两个属性",
+  "model_path": "models",
+  "model_name": "shouji.glb",
+  "env_path": "env",
+  "env_name": "2.env"
+}
