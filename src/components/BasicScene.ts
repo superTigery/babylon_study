@@ -104,7 +104,7 @@ class BasicScene {
      * 创建环境灯 可删除
      *
      */
-    // this.CreateLights()
+    this.CreateLights()
 
     /**
      * 创建天空盒 可删除
@@ -177,11 +177,11 @@ class BasicScene {
     // 相机最近距离
     camera.minZ = 0.5
     // 相机beta最大限制
-    camera.upperBetaLimit = Math.PI / 2
-    // 设置相机半径 滚轮滑动距离
-    camera.upperRadiusLimit = 100
-    camera.lowerRadiusLimit = 10
-    camera.wheelPrecision = 50
+    // camera.upperBetaLimit = Math.PI / 2
+    // // 设置相机半径 滚轮滑动距离
+    // camera.upperRadiusLimit = 100
+    // camera.lowerRadiusLimit = 10
+    // camera.wheelPrecision = 50
     // 设置相机自动旋转
     // camera.useAutoRotationBehavior = true
 
@@ -195,7 +195,7 @@ class BasicScene {
     // 创建环境光
     const light = new HemisphericLight('light', new Vector3(5, 10, 0))
     // 设置强度
-    light.intensity = 0.3
+    light.intensity = 1
     return light
   }
   // 创建辉光层
@@ -220,30 +220,43 @@ class BasicScene {
     // 大圈
     const bigCircle = MeshBuilder.CreatePlane('big', { size: 40 })
     bigCircle.position = new Vector3(0, -20, 0)
-    bigCircle.rotation.x = Tools.ToRadians(-90)
+    bigCircle.rotation.x = Tools.ToRadians(90)
     const bigMat = new StandardMaterial('bigMat')
-    bigMat.backFaceCulling = false
     const bigTex = new Texture('textures/rotationBorder1.png')
     bigMat.diffuseTexture = bigTex
-    bigMat.diffuseTexture.hasAlpha = true
-    bigMat.emissiveColor = Color3.FromHexString('#011c39')
+    bigMat.useAlphaFromDiffuseTexture = true
+    bigTex.hasAlpha = true
+    bigMat.backFaceCulling = true
+    bigMat.diffuseColor = Color3.FromHexString('#011c39')
     bigCircle.material = bigMat
 
+    const plane = MeshBuilder.CreatePlane('plane', { size: 30 }, this.scene)
+    const texture = new Texture('textures/gaoguang1.png')
+    const material = new StandardMaterial('mat', this.scene)
+    material.backFaceCulling = false
+    material.diffuseTexture = texture
+    texture.hasAlpha = true
+    material.useAlphaFromDiffuseTexture = true
+    plane.rotation.x = Math.PI / 2
+    plane.position.y = -1.1
+    plane.material = material
+
     // 小圈
-    const smallCircle = bigCircle.clone('small')
-    smallCircle.scaling = smallCircle.scaling.scaleInPlace(0.8)
-    const smallMat = bigMat.clone('smallMat')
-    const samllTex = new Texture('textures/rotationBorder2.png')
-    smallMat.diffuseTexture = samllTex
-    smallMat.diffuseTexture.hasAlpha = true
-    smallMat.diffuseColor = Color3.White()
-    smallCircle.material = smallMat
+    // const smallCircle = bigCircle.clone('small')
+    // smallCircle.scaling = smallCircle.scaling.scaleInPlace(0.8)
+    // const smallMat = bigMat.clone('smallMat')
+    // const samllTex = new Texture('textures/rotationBorder2.png')
+    // smallMat.useAlphaFromDiffuseTexture = true
+    // smallMat.diffuseTexture = samllTex
+    // smallMat.diffuseTexture.hasAlpha = true
+    // smallMat.diffuseColor = Color3.White()
+    // smallCircle.material = smallMat
 
-    this.scene.onBeforeRenderObservable.add(() => {
-      bigCircle.rotation.z -= 0.01
+    // this.scene.onBeforeRenderObservable.add(() => {
+    //   bigCircle.rotation.z -= 0.01
 
-      smallCircle.rotation.z += 0.005
-    })
+    //   smallCircle.rotation.z += 0.005
+    // })
   }
 
   /**
