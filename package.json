@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@babylonjs/core": "^7.8.0",
+    "@babylonjs/gui": "^7.13.0",
     "@babylonjs/loaders": "^7.8.0",
     "@babylonjs/materials": "^7.8.0",
     "vue": "^3.4.21"

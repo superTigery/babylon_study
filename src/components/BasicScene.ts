@@ -1,8 +1,10 @@
 import {
   AbstractMesh,
   ArcRotateCamera,
+  Axis,
   Color3,
   Color4,
+  Constants,
   CubeTexture,
   Engine,
   GlowLayer,
@@ -13,13 +15,16 @@ import {
   MirrorTexture,
   PBRMaterial,
   Plane,
+  Quaternion,
   Scene,
   SceneLoader,
   StandardMaterial,
   Texture,
   Tools,
+  Vector2,
   Vector3,
 } from '@babylonjs/core'
+import { AdvancedDynamicTexture, Button, Ellipse, Rectangle, StackPanel, TextBlock } from '@babylonjs/gui'
 
 import '@babylonjs/loaders'
 
@@ -57,6 +62,7 @@ class BasicScene {
   public model: AbstractMesh | null = null
   public sphere: Mesh | null = null
   public config: ConfigType
+  public advancedTexture: AdvancedDynamicTexture
 
   constructor(canvas: HTMLCanvasElement, config: ConfigType) {
     this.config = config
@@ -64,6 +70,35 @@ class BasicScene {
     this.engine = engine
     this.scene = scene
     this.camera = camera
+    this.advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI('ui')
+
+    SceneLoader.ImportMeshAsync('', 'models/', 'earth-opt.glb').then(() => {
+      // 方法一
+      const atmosphere = scene.getMeshByName('Earth_Atmosphere')!
+      atmosphere.material!.backFaceCulling = false
+      // out lighter
+      const hightlight = scene.getMeshByName('Earth_Hightlight')!
+      hightlight.setParent(atmosphere)
+      hightlight.material!.backFaceCulling = false
+      atmosphere.billboardMode = Mesh.BILLBOARDMODE_ALL
+      const rotationZ = Quaternion.RotationAxis(Axis.Z, Tools.ToRadians(-45))
+      atmosphere.rotationQuaternion = atmosphere.rotationQuaternion!.clone().multiply(rotationZ)
+
+      // 方法二
+      // const atmosphere = scene.getMeshByName('Earth_Atmosphere')!
+      // atmosphere.material!.backFaceCulling = false
+      // atmosphere.billboardMode = Mesh.BILLBOARDMODE_ALL
+
+      // const hightlight = scene.getMeshByName('Earth_Hightlight')! as Mesh
+      // hightlight.material!.backFaceCulling = false
+      // hightlight.bakeCurrentTransformIntoVertices()
+      // hightlight.billboardMode = Mesh.BILLBOARDMODE_ALL
+
+      // hightlight.rotationQuaternion = null
+      // hightlight.rotation.z = Tools.ToRadians(180)
+    })
+
+    this.CreateCirle()
 
     /**
      * 创建环境灯 可删除
@@ -90,7 +125,7 @@ class BasicScene {
      * 创建辉光层 可删除
      * 需要设置emissiveColor才能生效
      */
-    // this.CreateGLLayer()
+    this.CreateGLLayer()
 
     /**
      * 引入模型 不可删除
@@ -131,7 +166,8 @@ class BasicScene {
     //   // enableGroundMirror: true,
     // })
     // 创建相机
-    const camera = new ArcRotateCamera('Camera', -Math.PI / 2, Math.PI / 3, 30, Vector3.Zero(), scene)
+    const camera = new ArcRotateCamera('Camera', -Math.PI / 2, Math.PI / 2.5, 80, Vector3.Zero(), scene)
+    // camera.targetScreenOffset = new Vector2(-0.5, 0)
     // 设置相机目标
     camera.setTarget(Vector3.Zero())
     // 控制器
@@ -141,13 +177,13 @@ class BasicScene {
     // 相机最近距离
     camera.minZ = 0.5
     // 相机beta最大限制
-    // camera.upperBetaLimit = Math.PI / 1.5
+    camera.upperBetaLimit = Math.PI / 2
     // 设置相机半径 滚轮滑动距离
-    camera.upperRadiusLimit = 15
+    camera.upperRadiusLimit = 100
     camera.lowerRadiusLimit = 10
     camera.wheelPrecision = 50
     // 设置相机自动旋转
-    camera.useAutoRotationBehavior = true
+    // camera.useAutoRotationBehavior = true
 
     return {
       engine,
@@ -166,7 +202,7 @@ class BasicScene {
   CreateGLLayer() {
     const gl = new GlowLayer('gl')
     // 辉光强度
-    gl.intensity = 0.6
+    gl.intensity = 0.8
   }
 
   CreateMesh() {
@@ -178,6 +214,36 @@ class BasicScene {
     sphere.material = material
     this.sphere = sphere
     return sphere
+  }
+
+  CreateCirle() {
+    // 大圈
+    const bigCircle = MeshBuilder.CreatePlane('big', { size: 40 })
+    bigCircle.position = new Vector3(0, -20, 0)
+    bigCircle.rotation.x = Tools.ToRadians(-90)
+    const bigMat = new StandardMaterial('bigMat')
+    bigMat.backFaceCulling = false
+    const bigTex = new Texture('textures/rotationBorder1.png')
+    bigMat.diffuseTexture = bigTex
+    bigMat.diffuseTexture.hasAlpha = true
+    bigMat.emissiveColor = Color3.FromHexString('#011c39')
+    bigCircle.material = bigMat
+
+    // 小圈
+    const smallCircle = bigCircle.clone('small')
+    smallCircle.scaling = smallCircle.scaling.scaleInPlace(0.8)
+    const smallMat = bigMat.clone('smallMat')
+    const samllTex = new Texture('textures/rotationBorder2.png')
+    smallMat.diffuseTexture = samllTex
+    smallMat.diffuseTexture.hasAlpha = true
+    smallMat.diffuseColor = Color3.White()
+    smallCircle.material = smallMat
+
+    this.scene.onBeforeRenderObservable.add(() => {
+      bigCircle.rotation.z -= 0.01
+
+      smallCircle.rotation.z += 0.005
+    })
   }
 
   /**
@@ -214,12 +280,53 @@ class BasicScene {
       this.model.rotation.y = Tools.ToRadians(18)
     } else if (modelName === MODEL_MAP.MACHINE_MODEL) {
       this.model.rotation.y = Tools.ToRadians(-90)
+      const mesh = this.scene.getMeshByName('node_GK_DB02_-56386')
+      if (mesh) {
+        const rect1 = new Rectangle()
+        rect1.width = '300px'
+        rect1.height = '200px'
+
+        const button = new Button()
+        button.width = '50px'
+        button.height = '50px'
+        button.cornerRadius = 20
+
+        rect1.addControl(button)
+        button.onPointerClickObservable.add(() => {
+          alert('click')
+        })
+
+        const hotArea = new Ellipse()
+        hotArea.width = '20px'
+        hotArea.height = '20px'
+        hotArea.background = 'red'
+        hotArea.linkOffsetY = -20
+
+        rect1.addControl(hotArea)
+
+        const text = new TextBlock()
+        text.text = '点击查看信息'
+        text.color = 'white'
+        text.fontSize = '26'
+        rect1.addControl(text)
+
+        const left = '80px'
+        const top = 0
+        button.left = left
+        button.top = top
+        this.advancedTexture.addControl(rect1)
+        rect1.linkOffsetY = -100
+        rect1.linkWithMesh(mesh)
+      }
     } else if (modelName === MODEL_MAP.PHONE_MODEL) {
-      this.model.scaling = this.model.scaling.scaleInPlace(60)
+      this.model.position.y = -5
+      this.model.scaling = this.model.scaling.clone().multiply(new Vector3(190, 190, 190))
     } else if (modelName === MODEL_MAP.PING_BAN_MODEL) {
-      this.model.scaling = this.model.scaling.scaleInPlace(30)
+      this.model.position.y = -5
+      this.model.scaling = this.model.scaling.scaleInPlace(130)
     } else if (modelName === MODEL_MAP.GUAN_TI_LIAO) {
-      this.model.scaling = this.model.scaling.scaleInPlace(50)
+      this.model.position.y = -5
+      this.model.scaling = this.model.scaling.scaleInPlace(180)
     }
 
     /**
