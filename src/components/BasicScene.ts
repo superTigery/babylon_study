@@ -226,6 +226,7 @@ class BasicScene {
     bigMat.diffuseTexture = bigTex
     bigMat.useAlphaFromDiffuseTexture = true
     bigTex.hasAlpha = true
+    // bigMat.diffuseTexture.hasAlpha = true
     bigMat.backFaceCulling = true
     bigMat.diffuseColor = Color3.FromHexString('#011c39')
     bigCircle.material = bigMat
