@@ -218,6 +218,7 @@ class BasicScene {
 
   CreateCirle() {
     // 大圈
+
     const bigCircle = MeshBuilder.CreatePlane('big', { size: 40 })
     bigCircle.position = new Vector3(0, -20, 0)
     bigCircle.rotation.x = Tools.ToRadians(90)
